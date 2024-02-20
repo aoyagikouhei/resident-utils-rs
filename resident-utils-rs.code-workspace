@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "examples/example"
+		}
+	],
+	"settings": {
+		"rust-analyzer.cargo.features": [
+			"postgres",
+		],
+		"rust-analyzer.linkedProjects": [
+			"./Cargo.toml",
+			"./examples/example/Cargo.toml"
+		],
+		"rust-analyzer.showUnlinkedFileNotification": false
+	},
+}
