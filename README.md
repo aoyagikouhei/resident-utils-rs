@@ -6,6 +6,7 @@ Resident program library.
 
 - execute cron loop task
 - execute worker task
+- ctrl+c graceful stop
 
 ## Features
 ### postgres
