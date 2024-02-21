@@ -153,6 +153,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "combine"
+version = "4.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35ed6e9d84f0b51a7f52daf1c7d71dd136fd7a3f41a8462b8cdb8c78d920fad4"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "memchr",
+ "pin-project-lite",
+ "tokio",
+ "tokio-util",
+]
+
+[[package]]
 name = "core-foundation-sys"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -212,6 +226,17 @@ dependencies = [
  "tokio",
  "tokio-postgres",
  "tracing",
+]
+
+[[package]]
+name = "deadpool-redis"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36f2381b0e993d06a1f6d49f486b33bc4004085bf980340fc05726bacc681fff"
+dependencies = [
+ "deadpool",
+ "redis",
+ "serde",
 ]
 
 [[package]]
@@ -741,6 +766,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "redis"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c580d9cbbe1d1b479e8d67cf9daf6a62c957e6846048408b80b43ac3f6af84cd"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "combine",
+ "futures-util",
+ "itoa",
+ "percent-encoding",
+ "pin-project-lite",
+ "ryu",
+ "tokio",
+ "tokio-util",
+ "url",
+]
+
+[[package]]
 name = "redox_syscall"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -756,6 +800,7 @@ dependencies = [
  "chrono",
  "cron",
  "deadpool-postgres",
+ "deadpool-redis",
  "tokio",
  "tokio-util",
  "tracing",

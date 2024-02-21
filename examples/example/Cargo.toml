@@ -22,4 +22,5 @@ tracing-subscriber = "0.3"
 url = "2.5.0"
 
 [features]
-deadpool-postgres = []
+postgres = []
+redis = []

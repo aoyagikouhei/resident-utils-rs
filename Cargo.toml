@@ -11,10 +11,12 @@ edition = "2021"
 chrono = { version = "0.4", features = ["serde", "clock"] }
 cron = "0.12"
 deadpool-postgres = { version = "0.12", features = ["serde"], optional = true }
+deadpool-redis = { version = "0.14", features = ["serde"], optional = true }
 tokio = { version = "1", features = ["rt-multi-thread", "time", "signal"] }
 tokio-util = "0.7"
 tracing = "0.1"
 
 [features]
 postgres = ["deadpool-postgres"]
+redis = ["deadpool-redis"]
 
