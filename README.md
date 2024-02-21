@@ -19,4 +19,9 @@ Resident program library.
 
 ## Examples
 ### example
+PostgreSQL sample
 [source](https://github.com/aoyagikouhei/resident-utils-rs/tree/main/examples/example)
+
+### bot
+𝕏 bot
+[source](https://github.com/aoyagikouhei/resident-utils-rs/tree/main/examples/bot)

@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "examples/example"
+		},
+		{
+			"path": "examples/bot"
 		}
 	],
 	"settings": {
@@ -14,7 +17,8 @@
 		],
 		"rust-analyzer.linkedProjects": [
 			"./Cargo.toml",
-			"./examples/example/Cargo.toml"
+			"./examples/example/Cargo.toml",
+			"./examples/bot/Cargo.toml",
 		],
 		"rust-analyzer.showUnlinkedFileNotification": false
 	},
