@@ -18,7 +18,10 @@ pub fn make_looper<Fut1, Fut2>(
         + Send
         + Sync
         + 'static,
-    g: impl Fn() -> Fut2 + Send + Sync + 'static,
+    g: impl Fn(Result<deadpool_redis::Connection, deadpool_redis::PoolError>) -> Fut2
+        + Send
+        + Sync
+        + 'static,
 ) -> JoinHandle<()>
 where
     Fut1: Future<Output = LoopState> + Send,
@@ -31,14 +34,17 @@ where
         loop {
             // グレースフルストップのチェック
             if token.is_cancelled() {
-                g().await;
+                g(redis_pool.get().await).await;
                 break;
             }
 
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = f(now, redis_pool.get().await).await.looper(&token, &now, &schedule) {
+                if let Some(res) = f(now, redis_pool.get().await)
+                    .await
+                    .looper(&token, &now, &schedule)
+                {
                     next_tick = res;
                 } else {
                     break;
@@ -58,7 +64,10 @@ pub fn make_worker<Fut1, Fut2>(
         + Send
         + Sync
         + 'static,
-    g: impl Fn() -> Fut2 + Send + Sync + 'static,
+    g: impl Fn(Result<deadpool_redis::Connection, deadpool_redis::PoolError>) -> Fut2
+        + Send
+        + Sync
+        + 'static,
 ) -> JoinHandle<()>
 where
     Fut1: Future<Output = LoopState> + Send,
@@ -70,7 +79,7 @@ where
         loop {
             // グレースフルストップのチェック
             if token.is_cancelled() {
-                g().await;
+                g(redis_pool.get().await).await;
                 break;
             }
 
@@ -82,7 +91,7 @@ where
                     next_tick = res;
                 } else {
                     break;
-                }  
+                }
             }
 
             execute_sleep(&stop_check_duration, &next_tick, &now).await;

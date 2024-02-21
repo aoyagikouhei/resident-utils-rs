@@ -22,7 +22,13 @@ pub fn make_looper<Fut1, Fut2>(
         + Send
         + Sync
         + 'static,
-    g: impl Fn() -> Fut2 + Send + Sync + 'static,
+    g: impl Fn(
+            Result<deadpool_postgres::Client, deadpool_postgres::PoolError>,
+            Result<deadpool_redis::Connection, deadpool_redis::PoolError>,
+        ) -> Fut2
+        + Send
+        + Sync
+        + 'static,
 ) -> JoinHandle<()>
 where
     Fut1: Future<Output = LoopState> + Send,
@@ -35,7 +41,7 @@ where
         loop {
             // グレースフルストップのチェック
             if token.is_cancelled() {
-                g().await;
+                g(pg_pool.get().await, redis_pool.get().await).await;
                 break;
             }
 
@@ -66,7 +72,13 @@ pub fn make_worker<Fut1, Fut2>(
         + Send
         + Sync
         + 'static,
-    g: impl Fn() -> Fut2 + Send + Sync + 'static,
+    g: impl Fn(
+            Result<deadpool_postgres::Client, deadpool_postgres::PoolError>,
+            Result<deadpool_redis::Connection, deadpool_redis::PoolError>,
+        ) -> Fut2
+        + Send
+        + Sync
+        + 'static,
 ) -> JoinHandle<()>
 where
     Fut1: Future<Output = LoopState> + Send,
@@ -78,7 +90,7 @@ where
         loop {
             // グレースフルストップのチェック
             if token.is_cancelled() {
-                g().await;
+                g(pg_pool.get().await, redis_pool.get().await).await;
                 break;
             }
 
@@ -86,7 +98,10 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = f(now, pg_pool.get().await, redis_pool.get().await).await.worker(&token, &now) {
+                if let Some(res) = f(now, pg_pool.get().await, redis_pool.get().await)
+                    .await
+                    .worker(&token, &now)
+                {
                     next_tick = res;
                 } else {
                     break;

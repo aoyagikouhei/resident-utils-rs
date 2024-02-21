@@ -1,5 +1,5 @@
-use resident_utils::{ctrl_c_handler, make_looper, LoopState};
 use chrono::prelude::*;
+use resident_utils::{ctrl_c_handler, make_looper, LoopState};
 use std::time::Duration;
 use tracing::{info, warn, Level};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};

@@ -29,45 +29,49 @@ pub enum LoopState {
 }
 
 impl LoopState {
-    pub(crate) fn looper(&self, token: &CancellationToken, now: &DateTime<Utc>, schedule: &Schedule) -> Option<DateTime<Utc>> {
+    pub(crate) fn looper(
+        &self,
+        token: &CancellationToken,
+        now: &DateTime<Utc>,
+        schedule: &Schedule,
+    ) -> Option<DateTime<Utc>> {
         match self {
             LoopState::AllTerminate => {
                 token.cancel();
                 None
-            },
-            LoopState::Terminate => {
-                None
-            },
+            }
+            LoopState::Terminate => None,
             LoopState::Duration(duration) => {
                 // 指定時間待つ
                 Some(*now + *duration)
-            },
+            }
             LoopState::Continue => {
                 // 次の時間取得
                 Some(schedule.upcoming(Utc).next().unwrap())
             }
         }
     }
-    pub(crate) fn worker(&self, token: &CancellationToken, now: &DateTime<Utc>) -> Option<DateTime<Utc>> {
+    pub(crate) fn worker(
+        &self,
+        token: &CancellationToken,
+        now: &DateTime<Utc>,
+    ) -> Option<DateTime<Utc>> {
         match self {
             LoopState::AllTerminate => {
                 token.cancel();
                 None
-            },
-            LoopState::Terminate => {
-                None
-            },
+            }
+            LoopState::Terminate => None,
             LoopState::Duration(duration) => {
                 // 指定時間待つ
                 Some(*now + *duration)
-            },
+            }
             LoopState::Continue => {
                 // 次の時間取得
                 Some(*now)
             }
         }
     }
-
 }
 
 // 次の処理までスリープする
@@ -109,10 +113,7 @@ pub fn make_looper<Fut1, Fut2>(
     token: CancellationToken,
     expression: &str,
     stop_check_duration: Duration,
-    f: impl Fn(DateTime<Utc>) -> Fut1
-        + Send
-        + Sync
-        + 'static,
+    f: impl Fn(DateTime<Utc>) -> Fut1 + Send + Sync + 'static,
     g: impl Fn() -> Fut2 + Send + Sync + 'static,
 ) -> JoinHandle<()>
 where
@@ -148,10 +149,7 @@ where
 pub fn make_worker<Fut1, Fut2>(
     token: CancellationToken,
     stop_check_duration: Duration,
-    f: impl Fn(DateTime<Utc>) -> Fut1
-        + Send
-        + Sync
-        + 'static,
+    f: impl Fn(DateTime<Utc>) -> Fut1 + Send + Sync + 'static,
     g: impl Fn() -> Fut2 + Send + Sync + 'static,
 ) -> JoinHandle<()>
 where
@@ -176,7 +174,7 @@ where
                     next_tick = res;
                 } else {
                     break;
-                }                
+                }
             }
 
             execute_sleep(&stop_check_duration, &next_tick, &now).await;

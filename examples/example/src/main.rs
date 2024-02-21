@@ -1,6 +1,7 @@
 use resident_utils::{
     ctrl_c_handler,
-    postgres::{deadpool_postgres, make_looper, make_worker}, LoopState,
+    postgres::{deadpool_postgres, make_looper, make_worker},
+    LoopState,
 };
 use std::time::Duration;
 use tracing::{info, warn, Level};
@@ -95,7 +96,7 @@ async fn main() -> anyhow::Result<()> {
             token.clone(),
             "*/10 * * * * *",
             Duration::from_secs(10),
-            |now: _, pg_client: _| async move {
+            |now, pg_client| async move {
                 info!("定期的に処理する何か1 {}", now);
                 let pg_client = match pg_client {
                     Ok(client) => client,
@@ -121,7 +122,7 @@ async fn main() -> anyhow::Result<()> {
                 }
                 LoopState::Continue
             },
-            || async move {
+            |_| async move {
                 info!("graceful stop looper 1");
             },
         ),
@@ -129,7 +130,7 @@ async fn main() -> anyhow::Result<()> {
             pg_pool.clone(),
             token.clone(),
             Duration::from_secs(10),
-            |now: _, pg_client: _| async move {
+            |now, pg_client| async move {
                 info!("データがあれば処理する何か1 {}", now);
                 let pg_client = match pg_client {
                     Ok(client) => client,
@@ -153,7 +154,7 @@ async fn main() -> anyhow::Result<()> {
                     }
                 }
             },
-            || async move {
+            |_| async move {
                 info!("graceful stop worker 1");
             },
         ),
