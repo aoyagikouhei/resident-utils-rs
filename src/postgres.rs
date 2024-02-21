@@ -13,11 +13,11 @@ pub fn make_looper<Fut1, Fut2>(
     token: CancellationToken,
     expression: &str,
     stop_check_duration: Duration,
-    f: impl Fn(DateTime<Utc>, Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut1
+    task_function: impl Fn(DateTime<Utc>, Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut1
         + Send
         + Sync
         + 'static,
-    g: impl Fn(Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut2
+    stop_function: impl Fn(Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut2
         + Send
         + Sync
         + 'static,
@@ -33,14 +33,14 @@ where
         loop {
             // グレースフルストップのチェック
             if token.is_cancelled() {
-                g(pg_pool.get().await).await;
+                stop_function(pg_pool.get().await).await;
                 break;
             }
 
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = f(now, pg_pool.get().await)
+                if let Some(res) = task_function(now, pg_pool.get().await)
                     .await
                     .looper(&token, &now, &schedule)
                 {
@@ -59,11 +59,11 @@ pub fn make_worker<Fut1, Fut2>(
     pg_pool: deadpool_postgres::Pool,
     token: CancellationToken,
     stop_check_duration: Duration,
-    f: impl Fn(DateTime<Utc>, Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut1
+    task_function: impl Fn(DateTime<Utc>, Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut1
         + Send
         + Sync
         + 'static,
-    g: impl Fn(Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut2
+    stop_function: impl Fn(Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut2
         + Send
         + Sync
         + 'static,
@@ -78,7 +78,7 @@ where
         loop {
             // グレースフルストップのチェック
             if token.is_cancelled() {
-                g(pg_pool.get().await).await;
+                stop_function(pg_pool.get().await).await;
                 break;
             }
 
@@ -86,7 +86,10 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = f(now, pg_pool.get().await).await.worker(&token, &now) {
+                if let Some(res) = task_function(now, pg_pool.get().await)
+                    .await
+                    .worker(&token, &now)
+                {
                     next_tick = res;
                 } else {
                     break;
