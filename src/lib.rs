@@ -4,6 +4,9 @@ pub mod postgres;
 #[cfg(feature = "redis")]
 pub mod redis;
 
+#[cfg(all(feature = "postgres", feature = "redis"))]
+pub mod postgres_redis;
+
 use chrono::prelude::*;
 use std::time::Duration;
 use tokio::{signal::ctrl_c, spawn, task::JoinHandle, time::sleep};
