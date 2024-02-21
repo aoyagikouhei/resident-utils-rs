@@ -46,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
         token.clone(),
         "0 15,45 * * * *",
         Duration::from_secs(10),
-        |now: _| async move {
+        |now| async move {
             if let Err(err) = execute_tweet(now).await {
                 warn!(error = ?err, "execute tweet failed");
             }
