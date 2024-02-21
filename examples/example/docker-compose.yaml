@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=web
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - TZ=Asia/Tokyo
+      - PGTZ=Asia/Tokyo
+    ports:
+      - 5432:5432
+    volumes:
+      - resident_postgresql_data:/var/lib/postgresql/data
+
+volumes:
+  resident_postgresql_data:

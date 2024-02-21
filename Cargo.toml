@@ -4,8 +4,14 @@ workspace = { members = [ "examples/example"] }
 name = "resident-utils"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["aoyagikouhei <aoyagi.kouhei@gmail.com>"]
+license = "MIT"
+description = "Resident program library."
+repository = "https://github.com/aoyagikouhei/resident-utils-rs"
+keywords = ["resident", "utility", "daemon"]
+categories = ["asynchronous"]
+readme = "README.md"
+documentation = "https://docs.rs/resident-utils"
 
 [dependencies]
 chrono = { version = "0.4", features = ["serde", "clock"] }
@@ -20,3 +26,8 @@ tracing = "0.1"
 postgres = ["deadpool-postgres"]
 redis = ["deadpool-redis"]
 
+[package.metadata.docs.rs]
+all-features = true
+features = ["postgres", "redis"]
+rustdoc-args = ["--cfg", "docsrs"]
+cargo-args = ["-Zunstable-options", "-Zrustdoc-scrape-examples"]
