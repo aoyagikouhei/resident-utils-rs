@@ -13,7 +13,7 @@ pub fn make_looper<Fut1, Fut2>(
     token: CancellationToken,
     expression: &str,
     stop_check_duration: Duration,
-    f: impl Fn(&DateTime<Utc>, Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut1
+    f: impl Fn(DateTime<Utc>, Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut1
         + Send
         + Sync
         + 'static,
@@ -37,7 +37,7 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                f(&now, pg_pool.get().await).await;
+                f(now, pg_pool.get().await).await;
 
                 // 次の時間取得
                 next_tick = schedule.upcoming(Utc).next().unwrap();
@@ -52,7 +52,7 @@ pub fn make_worker<Fut1, Fut2>(
     pg_pool: deadpool_postgres::Pool,
     token: CancellationToken,
     stop_check_duration: Duration,
-    f: impl Fn(&DateTime<Utc>, Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut1
+    f: impl Fn(DateTime<Utc>, Result<deadpool_postgres::Client, deadpool_postgres::PoolError>) -> Fut1
         + Send
         + Sync
         + 'static,
@@ -76,7 +76,7 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                let duration = f(&now, pg_pool.get().await).await;
+                let duration = f(now, pg_pool.get().await).await;
 
                 // 待つ必要が無いなら次のループに入る
                 if duration.is_zero() {
