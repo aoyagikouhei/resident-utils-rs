@@ -43,7 +43,10 @@ async fn is_batch(batch_code: &str, pg_conn: &deadpool_postgres::Client) -> anyh
     Ok(!res.is_empty())
 }
 
-async fn add_task(data_json: &serde_json::Value, pg_conn: &deadpool_postgres::Client) -> anyhow::Result<()> {
+async fn add_task(
+    data_json: &serde_json::Value,
+    pg_conn: &deadpool_postgres::Client,
+) -> anyhow::Result<()> {
     let stmt = pg_conn
         .prepare("INSERT INTO public.workers (data_json) VALUES ($1)")
         .await?;
@@ -51,7 +54,9 @@ async fn add_task(data_json: &serde_json::Value, pg_conn: &deadpool_postgres::Cl
     Ok(())
 }
 
-async fn get_task(pg_conn: &deadpool_postgres::Client) -> anyhow::Result<Option<serde_json::Value>> {
+async fn get_task(
+    pg_conn: &deadpool_postgres::Client,
+) -> anyhow::Result<Option<serde_json::Value>> {
     let stmt = pg_conn
         .prepare("SELECT data_json FROM resident_set_delete_worker()")
         .await?;
@@ -89,14 +94,21 @@ async fn main() -> anyhow::Result<()> {
             pg_pool.clone(),
             token.clone(),
             "*/10 * * * * *",
-            60,
-            |&now: &_, pg_conn: _| async move {
+            Duration::from_secs(60),
+            |&now: &_, pg_client: _| async move {
                 info!("定期的に処理する何か1 {}", now);
-                match is_batch("minutely_batch", &pg_conn).await {
+                let pg_client = match pg_client {
+                    Ok(client) => client,
+                    Err(e) => {
+                        warn!("pg_client error={}", e);
+                        return;
+                    }
+                };
+                match is_batch("minutely_batch", &pg_client).await {
                     Ok(res) => {
                         if res {
                             // 本当にやりたいバッチ処理
-                            add_task(&serde_json::json!({"now": now}), &pg_conn)
+                            add_task(&serde_json::json!({"now": now}), &pg_client)
                                 .await
                                 .unwrap();
                         } else {
@@ -115,22 +127,28 @@ async fn main() -> anyhow::Result<()> {
         make_worker(
             pg_pool.clone(),
             token.clone(),
-            60,
-            60,
-            |&now: &_, _pg_conn: _| async move {
+            Duration::from_secs(60),
+            |&now: &_, pg_client: _| async move {
                 info!("データがあれば処理する何か1 {}", now);
-                match get_task(&_pg_conn).await {
+                let pg_client = match pg_client {
+                    Ok(client) => client,
+                    Err(e) => {
+                        warn!("pg_client error={}", e);
+                        return Duration::from_secs(60);
+                    }
+                };
+                match get_task(&pg_client).await {
                     Ok(Some(data_json)) => {
                         info!("data_json={}", data_json);
-                        0
+                        Duration::ZERO
                     }
                     Ok(None) => {
                         info!("no data");
-                        60
+                        Duration::from_secs(60)
                     }
                     Err(e) => {
                         warn!("get_task error={}", e);
-                        60
+                        Duration::from_secs(60)
                     }
                 }
             },
