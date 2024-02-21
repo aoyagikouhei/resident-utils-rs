@@ -1,6 +1,6 @@
 use resident_utils::{
     ctrl_c_handler,
-    postgres::{deadpool_postgres, make_looper, make_worker},
+    postgres::{deadpool_postgres, make_looper, make_worker}, LoopState,
 };
 use std::time::Duration;
 use tracing::{info, warn, Level};
@@ -101,7 +101,7 @@ async fn main() -> anyhow::Result<()> {
                     Ok(client) => client,
                     Err(e) => {
                         warn!("pg_client error={}", e);
-                        return;
+                        return LoopState::Continue;
                     }
                 };
                 match is_batch("minutely_batch", &pg_client).await {
@@ -119,6 +119,7 @@ async fn main() -> anyhow::Result<()> {
                         warn!("is_batch error={}", e);
                     }
                 }
+                LoopState::Continue
             },
             || async move {
                 info!("graceful stop looper 1");
@@ -134,21 +135,21 @@ async fn main() -> anyhow::Result<()> {
                     Ok(client) => client,
                     Err(e) => {
                         warn!("pg_client error={}", e);
-                        return Duration::from_secs(60);
+                        return LoopState::Duration(Duration::from_secs(60));
                     }
                 };
                 match get_task(&pg_client).await {
                     Ok(Some(data_json)) => {
                         info!("data_json={}", data_json);
-                        Duration::ZERO
+                        LoopState::Continue
                     }
                     Ok(None) => {
                         info!("no data");
-                        Duration::from_secs(60)
+                        LoopState::Duration(Duration::from_secs(60))
                     }
                     Err(e) => {
                         warn!("get_task error={}", e);
-                        Duration::from_secs(60)
+                        LoopState::Duration(Duration::from_secs(60))
                     }
                 }
             },

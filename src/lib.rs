@@ -14,6 +14,62 @@ use tokio::{signal::ctrl_c, spawn, task::JoinHandle, time::sleep};
 use tokio_util::sync::CancellationToken;
 use tracing::debug;
 
+///
+/// LoopState
+///   AllTerminate: stop all threads
+///   Continue: continue loop
+///   Terminate: terminate this loop
+///   Duration(duration): sleep duration
+///
+pub enum LoopState {
+    AllTerminate,
+    Continue,
+    Terminate,
+    Duration(Duration),
+}
+
+impl LoopState {
+    pub(crate) fn looper(&self, token: &CancellationToken, now: &DateTime<Utc>, schedule: &Schedule) -> Option<DateTime<Utc>> {
+        match self {
+            LoopState::AllTerminate => {
+                token.cancel();
+                None
+            },
+            LoopState::Terminate => {
+                None
+            },
+            LoopState::Duration(duration) => {
+                // 指定時間待つ
+                Some(*now + *duration)
+            },
+            LoopState::Continue => {
+                // 次の時間取得
+                Some(schedule.upcoming(Utc).next().unwrap())
+            }
+        }
+    }
+    pub(crate) fn worker(&self, token: &CancellationToken, now: &DateTime<Utc>) -> Option<DateTime<Utc>> {
+        match self {
+            LoopState::AllTerminate => {
+                token.cancel();
+                None
+            },
+            LoopState::Terminate => {
+                None
+            },
+            LoopState::Duration(duration) => {
+                // 指定時間待つ
+                Some(*now + *duration)
+            },
+            LoopState::Continue => {
+                // 次の時間取得
+                Some(*now)
+            }
+        }
+    }
+
+}
+
 // 次の処理までスリープする
 #[allow(dead_code)]
 pub(crate) async fn execute_sleep(
@@ -60,7 +116,7 @@ pub fn make_looper<Fut1, Fut2>(
     g: impl Fn() -> Fut2 + Send + Sync + 'static,
 ) -> JoinHandle<()>
 where
-    Fut1: Future<Output = ()> + Send,
+    Fut1: Future<Output = LoopState> + Send,
     Fut2: Future<Output = ()> + Send,
 {
     let expression = expression.to_owned();
@@ -77,10 +133,11 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                f(now).await;
-
-                // 次の時間取得
-                next_tick = schedule.upcoming(Utc).next().unwrap();
+                if let Some(res) = f(now).await.looper(&token, &now, &schedule) {
+                    next_tick = res;
+                } else {
+                    break;
+                }
             }
 
             execute_sleep(&stop_check_duration, &next_tick, &now).await;
@@ -98,7 +155,7 @@ pub fn make_worker<Fut1, Fut2>(
     g: impl Fn() -> Fut2 + Send + Sync + 'static,
 ) -> JoinHandle<()>
 where
-    Fut1: Future<Output = Duration> + Send,
+    Fut1: Future<Output = LoopState> + Send,
     Fut2: Future<Output = ()> + Send,
 {
     spawn(async move {
@@ -115,15 +172,11 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                let duration = f(now).await;
-
-                // 待つ必要が無いなら次のループに入る
-                if duration.is_zero() {
-                    continue;
-                }
-
-                // 次の時間取得
-                next_tick = now + duration;
+                if let Some(res) = f(now).await.worker(&token, &now) {
+                    next_tick = res;
+                } else {
+                    break;
+                }                
             }
 
             execute_sleep(&stop_check_duration, &next_tick, &now).await;

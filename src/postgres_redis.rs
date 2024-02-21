@@ -6,7 +6,7 @@ use cron::Schedule;
 use tokio::{spawn, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use crate::execute_sleep;
+use crate::{execute_sleep, LoopState};
 
 pub fn make_looper<Fut1, Fut2>(
     pg_pool: deadpool_postgres::Pool,
@@ -25,7 +25,7 @@ pub fn make_looper<Fut1, Fut2>(
     g: impl Fn() -> Fut2 + Send + Sync + 'static,
 ) -> JoinHandle<()>
 where
-    Fut1: Future<Output = ()> + Send,
+    Fut1: Future<Output = LoopState> + Send,
     Fut2: Future<Output = ()> + Send,
 {
     let expression = expression.to_owned();
@@ -69,7 +69,7 @@ pub fn make_worker<Fut1, Fut2>(
     g: impl Fn() -> Fut2 + Send + Sync + 'static,
 ) -> JoinHandle<()>
 where
-    Fut1: Future<Output = Duration> + Send,
+    Fut1: Future<Output = LoopState> + Send,
     Fut2: Future<Output = ()> + Send,
 {
     spawn(async move {
@@ -86,15 +86,11 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                let duration = f(now, pg_pool.get().await, redis_pool.get().await).await;
-
-                // 待つ必要が無いなら次のループに入る
-                if duration.is_zero() {
-                    continue;
+                if let Some(res) = f(now, pg_pool.get().await, redis_pool.get().await).await.worker(&token, &now) {
+                    next_tick = res;
+                } else {
+                    break;
                 }
-
-                // 次の時間取得
-                next_tick = now + duration;
             }
 
             execute_sleep(&stop_check_duration, &next_tick, &now).await;

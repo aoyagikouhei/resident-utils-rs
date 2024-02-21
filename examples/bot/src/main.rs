@@ -1,4 +1,4 @@
-use resident_utils::{ctrl_c_handler, make_looper};
+use resident_utils::{ctrl_c_handler, make_looper, LoopState};
 use chrono::prelude::*;
 use std::time::Duration;
 use tracing::{info, warn, Level};
@@ -44,12 +44,13 @@ async fn main() -> anyhow::Result<()> {
     let (_, token) = ctrl_c_handler();
     let handles = vec![make_looper(
         token.clone(),
-        "0 */5 * * * *",
+        "0 15,45 * * * *",
         Duration::from_secs(10),
         |now: _| async move {
             if let Err(err) = execute_tweet(now).await {
                 warn!(error = ?err, "execute tweet failed");
             }
+            LoopState::Continue
         },
         || async move {
             info!("graceful stop looper 1");
