@@ -20,6 +20,12 @@ pub(crate) async fn execute_sleep(
     next_tick: &DateTime<Utc>,
     now: &DateTime<Utc>,
 ) {
+    // next_tickが過去ならsleepせずに終了
+    if now >= next_tick {
+        return;
+    }
+
+    // 上記でチェックしているので、as u64で問題無い。
     let tick_duration = Duration::from_secs((*next_tick - *now).num_seconds() as u64);
     let duration = if stop_check_duration < &tick_duration {
         stop_check_duration

@@ -94,7 +94,7 @@ async fn main() -> anyhow::Result<()> {
             pg_pool.clone(),
             token.clone(),
             "*/10 * * * * *",
-            Duration::from_secs(60),
+            Duration::from_secs(10),
             |&now: &_, pg_client: _| async move {
                 info!("定期的に処理する何か1 {}", now);
                 let pg_client = match pg_client {
@@ -127,7 +127,7 @@ async fn main() -> anyhow::Result<()> {
         make_worker(
             pg_pool.clone(),
             token.clone(),
-            Duration::from_secs(60),
+            Duration::from_secs(10),
             |&now: &_, pg_client: _| async move {
                 info!("データがあれば処理する何か1 {}", now);
                 let pg_client = match pg_client {
