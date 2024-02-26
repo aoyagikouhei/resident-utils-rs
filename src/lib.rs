@@ -8,8 +8,9 @@ pub mod redis;
 pub mod postgres_redis;
 
 use chrono::prelude::*;
+pub use cron;
 use cron::Schedule;
-use std::{future::Future, str::FromStr, time::Duration};
+use std::{future::Future, time::Duration};
 use tokio::{signal::ctrl_c, spawn, task::JoinHandle, time::sleep};
 use tokio_util::sync::CancellationToken;
 use tracing::debug;
@@ -47,7 +48,7 @@ impl LoopState {
             }
             LoopState::Continue => {
                 // 次の時間取得
-                Some(schedule.upcoming(Utc).next().unwrap())
+                schedule.upcoming(Utc).next()
             }
         }
     }
@@ -111,7 +112,7 @@ pub fn ctrl_c_handler() -> (JoinHandle<()>, CancellationToken) {
 
 pub fn make_looper<Fut1, Fut2>(
     token: CancellationToken,
-    expression: &str,
+    schedule: Schedule,
     stop_check_duration: Duration,
     task_function: impl Fn(DateTime<Utc>) -> Fut1 + Send + Sync + 'static,
     stop_function: impl Fn() -> Fut2 + Send + Sync + 'static,
@@ -120,10 +121,14 @@ where
     Fut1: Future<Output = LoopState> + Send,
     Fut2: Future<Output = ()> + Send,
 {
-    let expression = expression.to_owned();
     spawn(async move {
-        let schedule = Schedule::from_str(&expression).unwrap();
-        let mut next_tick: DateTime<Utc> = schedule.upcoming(Utc).next().unwrap();
+        let mut next_tick: DateTime<Utc> = match schedule.upcoming(Utc).next() {
+            Some(next_tick) => next_tick,
+            None => {
+                stop_function().await;
+                return;
+            }
+        };
         loop {
             // グレースフルストップのチェック
             if token.is_cancelled() {
@@ -137,6 +142,7 @@ where
                 if let Some(res) = task_function(now).await.looper(&token, &now, &schedule) {
                     next_tick = res;
                 } else {
+                    stop_function().await;
                     break;
                 }
             }
@@ -173,6 +179,7 @@ where
                 if let Some(res) = task_function(now).await.worker(&token, &now) {
                     next_tick = res;
                 } else {
+                    stop_function().await;
                     break;
                 }
             }

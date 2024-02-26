@@ -1,5 +1,7 @@
 use chrono::prelude::*;
+use resident_utils::cron::Schedule;
 use resident_utils::{ctrl_c_handler, make_looper, LoopState};
+use std::str::FromStr;
 use std::time::Duration;
 use tracing::{info, warn, Level};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
@@ -44,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
     let (_, token) = ctrl_c_handler();
     let handles = vec![make_looper(
         token.clone(),
-        "0 15,45 * * * *",
+        Schedule::from_str("0 15,45 * * * *").unwrap(),
         Duration::from_secs(10),
         |now| async move {
             if let Err(err) = execute_tweet(now).await {

@@ -1,5 +1,5 @@
 pub use deadpool_postgres;
-use std::{future::Future, str::FromStr, time::Duration};
+use std::{future::Future, time::Duration};
 
 use chrono::prelude::*;
 use cron::Schedule;
@@ -12,7 +12,7 @@ pub fn make_looper<Fut1, Fut2>(
     pg_pool: deadpool_postgres::Pool,
     redis_pool: deadpool_redis::Pool,
     token: CancellationToken,
-    expression: &str,
+    schedule: Schedule,
     stop_check_duration: Duration,
     task_function: impl Fn(
             DateTime<Utc>,
@@ -34,10 +34,14 @@ where
     Fut1: Future<Output = LoopState> + Send,
     Fut2: Future<Output = ()> + Send,
 {
-    let expression = expression.to_owned();
     spawn(async move {
-        let schedule = Schedule::from_str(&expression).unwrap();
-        let mut next_tick: DateTime<Utc> = schedule.upcoming(Utc).next().unwrap();
+        let mut next_tick: DateTime<Utc> = match schedule.upcoming(Utc).next() {
+            Some(next_tick) => next_tick,
+            None => {
+                stop_function(pg_pool.get().await, redis_pool.get().await).await;
+                return;
+            }
+        };
         loop {
             // グレースフルストップのチェック
             if token.is_cancelled() {
@@ -48,10 +52,15 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                task_function(now, pg_pool.get().await, redis_pool.get().await).await;
-
-                // 次の時間取得
-                next_tick = schedule.upcoming(Utc).next().unwrap();
+                if let Some(res) = task_function(now, pg_pool.get().await, redis_pool.get().await)
+                    .await
+                    .looper(&token, &now, &schedule)
+                {
+                    next_tick = res;
+                } else {
+                    stop_function(pg_pool.get().await, redis_pool.get().await).await;
+                    break;
+                }
             }
 
             execute_sleep(&stop_check_duration, &next_tick, &now).await;
@@ -104,6 +113,7 @@ where
                 {
                     next_tick = res;
                 } else {
+                    stop_function(pg_pool.get().await, redis_pool.get().await).await;
                     break;
                 }
             }

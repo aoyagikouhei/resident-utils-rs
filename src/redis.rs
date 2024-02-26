@@ -1,6 +1,6 @@
 pub use deadpool_redis;
 
-use std::{future::Future, str::FromStr, time::Duration};
+use std::{future::Future, time::Duration};
 
 use chrono::prelude::*;
 use cron::Schedule;
@@ -12,7 +12,7 @@ use crate::{execute_sleep, LoopState};
 pub fn make_looper<Fut1, Fut2>(
     redis_pool: deadpool_redis::Pool,
     token: CancellationToken,
-    expression: &str,
+    schedule: Schedule,
     stop_check_duration: Duration,
     task_function: impl Fn(DateTime<Utc>, Result<deadpool_redis::Connection, deadpool_redis::PoolError>) -> Fut1
         + Send
@@ -27,10 +27,14 @@ where
     Fut1: Future<Output = LoopState> + Send,
     Fut2: Future<Output = ()> + Send,
 {
-    let expression = expression.to_owned();
     spawn(async move {
-        let schedule = Schedule::from_str(&expression).unwrap();
-        let mut next_tick: DateTime<Utc> = schedule.upcoming(Utc).next().unwrap();
+        let mut next_tick: DateTime<Utc> = match schedule.upcoming(Utc).next() {
+            Some(next_tick) => next_tick,
+            None => {
+                stop_function(redis_pool.get().await).await;
+                return;
+            }
+        };
         loop {
             // グレースフルストップのチェック
             if token.is_cancelled() {
@@ -47,6 +51,7 @@ where
                 {
                     next_tick = res;
                 } else {
+                    stop_function(redis_pool.get().await).await;
                     break;
                 }
             }
@@ -93,6 +98,7 @@ where
                 {
                     next_tick = res;
                 } else {
+                    stop_function(redis_pool.get().await).await;
                     break;
                 }
             }

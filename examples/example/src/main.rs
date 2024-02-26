@@ -1,9 +1,10 @@
 use resident_utils::{
+    cron::Schedule,
     ctrl_c_handler,
     postgres::{deadpool_postgres, make_looper, make_worker},
     LoopState,
 };
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 use tracing::{info, warn, Level};
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{filter::Targets, layer::SubscriberExt, Registry};
@@ -94,7 +95,7 @@ async fn main() -> anyhow::Result<()> {
         make_looper(
             pg_pool.clone(),
             token.clone(),
-            "*/10 * * * * *",
+            Schedule::from_str("*/10 * * * * *").unwrap(),
             Duration::from_secs(10),
             |now, pg_client| async move {
                 info!("定期的に処理する何か1 {}", now);
