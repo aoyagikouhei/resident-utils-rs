@@ -102,8 +102,11 @@ pub fn ctrl_c_handler() -> (JoinHandle<()>, CancellationToken) {
     let cloned_token = token.clone();
     (
         spawn(async move {
-            ctrl_c().await.unwrap();
-            debug!("received ctrl-c");
+            if let Err(err) = ctrl_c().await {
+                debug!(error = ?err, "ctrl-c error");
+            } else {
+                debug!("received ctrl-c");
+            }
             cloned_token.cancel();
         }),
         token,

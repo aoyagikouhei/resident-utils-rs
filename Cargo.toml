@@ -2,7 +2,7 @@ workspace = { members = [ "examples/bot", "examples/example"] }
 
 [package]
 name = "resident-utils"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["aoyagikouhei <aoyagi.kouhei@gmail.com>"]
 license = "MIT"
@@ -18,7 +18,7 @@ chrono = "0.4"
 cron = "0.12"
 deadpool-postgres = { version = "0.12", features = ["serde"], optional = true }
 deadpool-redis = { version = "0.14", features = ["serde"], optional = true }
-tokio = { version = "1", features = ["time", "signal"] }
+tokio = { version = "1", features = ["rt-multi-thread", "time", "signal"] }
 tokio-util = "0.7"
 tracing = "0.1"
 

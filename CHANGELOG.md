@@ -1,5 +1,10 @@
 ## Changes
 
+### v0.1.2 (2024/02/27)
+* remove unwrap in ctrl_c
+* add tokio rt-multi-thread
+* fix: some features
+
 ### v0.1.1 (2024/02/27)
 * remove unnecessary features
 * remove unnecessary unwrap
