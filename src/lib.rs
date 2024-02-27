@@ -68,7 +68,7 @@ impl LoopState {
                 Some(*now + *duration)
             }
             LoopState::Continue => {
-                // 次の時間取得
+                // 即時処理を行う
                 Some(*now)
             }
         }
