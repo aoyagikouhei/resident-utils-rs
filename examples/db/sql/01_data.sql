@@ -1,6 +1,6 @@
 DELETE FROM batches;
 DELETE FROM workers;
-
+DELETE FROM accounts;
 
 INSERT INTO batches(
     batch_code

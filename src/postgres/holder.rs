@@ -59,12 +59,55 @@ where
             return Ok(Some(value.clone()));
         }
         let pg_client = self.pg_pool.get().await?;
-        let value = f(pg_client, key.clone()).await?;
-        Ok(if let Some(value) = value {
-            self.map.insert(key.clone(), value.clone());
-            Some(value)
-        } else {
-            None
-        })
+        let Some(value) = f(pg_client, key.clone()).await? else {
+            return Ok(None);
+        };
+        self.map.insert(key.clone(), value.clone());
+        Ok(Some(value))
+    }
+}
+
+pub struct HolderMapEachExpire<K, V> {
+    map: HashMap<K, (V, DateTime<Utc>)>,
+    expire_interval: Duration,
+    pg_pool: deadpool_postgres::Pool,
+}
+
+impl<K, V> HolderMapEachExpire<K, V>
+where
+    K: PartialEq + Eq + Hash + Clone,
+    V: Clone,
+{
+    pub fn new(pg_pool: deadpool_postgres::Pool, expire_interval: Duration) -> Self {
+        Self {
+            map: HashMap::new(),
+            expire_interval,
+            pg_pool,
+        }
+    }
+
+    pub async fn get<FutOne>(
+        &mut self,
+        key: &K,
+        now: Option<DateTime<Utc>>,
+        f: impl FnOnce(deadpool_postgres::Client, K) -> FutOne,
+    ) -> Result<Option<V>, Error>
+    where
+        FutOne: Future<Output = Result<Option<V>, Error>>,
+    {
+        let now = now.unwrap_or(Utc::now());
+        match self.map.get(key) {
+            Some((value, expire_at)) if now < *expire_at => {
+                return Ok(Some(value.clone()));
+            }
+            _ => {}
+        }
+        let pg_client = self.pg_pool.get().await?;
+        let Some(value) = f(pg_client, key.clone()).await? else {
+            return Ok(None);
+        };
+        self.map
+            .insert(key.clone(), (value.clone(), now + self.expire_interval));
+        Ok(Some(value))
     }
 }
