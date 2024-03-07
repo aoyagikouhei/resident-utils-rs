@@ -30,4 +30,4 @@ PostgreSQL sample
 
 ### data_holder
 Data holder postgresql sample
-[source](https://github.com/aoyagikouhei/resident-utils-rs/tree/main/examples/hobder_pg)
+[source](https://github.com/aoyagikouhei/resident-utils-rs/tree/main/examples/holder_pg)
