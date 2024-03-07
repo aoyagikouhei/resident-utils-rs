@@ -492,6 +492,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "holder_pg"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "postgres-types",
+ "resident-utils",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-bunyan-formatter",
+ "tracing-subscriber",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "http"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1014,12 +1032,13 @@ dependencies = [
 
 [[package]]
 name = "resident-utils"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "cron",
  "deadpool-postgres",
  "deadpool-redis",
+ "thiserror",
  "tokio",
  "tokio-util",
  "tracing",
@@ -1596,6 +1615,10 @@ name = "uuid"
 version = "1.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f00cc9702ca12d3c81455259621e676d0f7251cec66a21e98fe2e9a37db93b2a"
+dependencies = [
+ "getrandom",
+ "serde",
+]
 
 [[package]]
 name = "valuable"

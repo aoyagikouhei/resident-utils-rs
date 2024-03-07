@@ -7,6 +7,7 @@ Resident program library.
 - execute cron loop task
 - execute worker task
 - ctrl+c graceful stop
+- data holder for cache
 
 ## Features
 ### postgres
@@ -26,3 +27,7 @@ PostgreSQL sample
 ### bot
 𝕏 bot
 [source](https://github.com/aoyagikouhei/resident-utils-rs/tree/main/examples/bot)
+
+### data_holder
+Data holder postgresql sample
+[source](https://github.com/aoyagikouhei/resident-utils-rs/tree/main/examples/hobder_pg)

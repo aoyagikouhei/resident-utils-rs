@@ -1,5 +1,8 @@
 ## Changes
 
+### v0.2.0 (2024/03/07)
+* add postgres data holder
+
 ### v0.1.2 (2024/02/27)
 * remove unwrap in ctrl_c
 * add tokio rt-multi-thread

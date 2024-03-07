@@ -8,6 +8,8 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{execute_sleep, LoopState};
 
+pub mod holder;
+
 pub fn make_looper<Fut1, Fut2>(
     pg_pool: deadpool_postgres::Pool,
     token: CancellationToken,
