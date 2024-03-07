@@ -49,11 +49,10 @@ where
         FutOne: Future<Output = Result<Option<V>, Error>>,
         FutAll: Future<Output = Result<HashMap<K, V>, Error>>,
     {
-        let now = now.unwrap_or(Utc::now());
-        if now >= self.expire_at {
+        if get_now(now) >= self.expire_at {
             let pg_client = self.pg_pool.get().await?;
             self.map = g(pg_client).await?;
-            self.expire_at = now + self.expire_interval;
+            self.expire_at = expire_at(now, self.expire_interval);
         }
         if let Some(value) = self.map.get(key) {
             return Ok(Some(value.clone()));
@@ -95,9 +94,8 @@ where
     where
         FutOne: Future<Output = Result<Option<V>, Error>>,
     {
-        let now = now.unwrap_or(Utc::now());
         match self.map.get(key) {
-            Some((value, expire_at)) if now < *expire_at => {
+            Some((value, expire_at)) if get_now(now) < *expire_at => {
                 return Ok(Some(value.clone()));
             }
             _ => {}
@@ -106,8 +104,18 @@ where
         let Some(value) = f(pg_client, key.clone()).await? else {
             return Ok(None);
         };
-        self.map
-            .insert(key.clone(), (value.clone(), now + self.expire_interval));
+        self.map.insert(
+            key.clone(),
+            (value.clone(), expire_at(now, self.expire_interval)),
+        );
         Ok(Some(value))
     }
+}
+
+fn get_now(now: Option<DateTime<Utc>>) -> DateTime<Utc> {
+    now.unwrap_or(Utc::now())
+}
+
+fn expire_at(now: Option<DateTime<Utc>>, interval: Duration) -> DateTime<Utc> {
+    get_now(now) + interval
 }

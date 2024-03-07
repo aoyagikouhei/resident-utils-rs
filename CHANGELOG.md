@@ -1,6 +1,9 @@
 ## Changes
 
-### v0.2.0 (2024/03/08)
+### v0.2.2 (2024/03/08)
+* modify calc now
+
+### v0.2.1 (2024/03/08)
 * add postgres data holder with each exipire
 
 ### v0.2.0 (2024/03/07)
