@@ -7,6 +7,8 @@ pub mod redis;
 #[cfg(all(feature = "postgres", feature = "redis"))]
 pub mod postgres_redis;
 
+pub mod retry;
+
 use chrono::prelude::*;
 pub use cron;
 use cron::Schedule;

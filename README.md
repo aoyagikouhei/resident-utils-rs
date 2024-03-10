@@ -8,6 +8,7 @@ Resident program library.
 - execute worker task
 - ctrl+c graceful stop
 - data holder for cache
+- retry with timeout
 
 ## Features
 ### postgres

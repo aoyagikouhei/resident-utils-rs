@@ -1,5 +1,8 @@
 ## Changes
 
+### v0.3.0 (2024/03/11)
+* add retry
+
 ### v0.2.2 (2024/03/08)
 * modify calc now
 
