@@ -16,7 +16,14 @@ pub async fn execute_retry<T, E, Fut>(
 where
     Fut: std::future::Future<Output = Result<T, E>>,
 {
-    execute_retry_with_exponential_backoff(max_try_count, retry_duration, timeout_duration, inner, false).await
+    execute_retry_with_exponential_backoff(
+        max_try_count,
+        retry_duration,
+        timeout_duration,
+        inner,
+        false,
+    )
+    .await
 }
 
 pub async fn execute_retry_with_exponential_backoff<T, E, Fut>(
@@ -45,7 +52,6 @@ where
                 }
                 Err(err) => {
                     errors.push(err);
-                    
                 }
             }
         } else {
