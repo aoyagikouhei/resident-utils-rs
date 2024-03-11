@@ -1,27 +1,30 @@
 ## Changes
 
+### v0.3.1 (2024/03/12)
+* Support exponential backoff for retry
+
 ### v0.3.0 (2024/03/11)
-* add retry
+* Add retry
 
 ### v0.2.2 (2024/03/08)
-* modify calc now
+* Modify calc now
 
 ### v0.2.1 (2024/03/08)
-* add postgres data holder with each exipire
+* Add postgres data holder with each exipire
 
 ### v0.2.0 (2024/03/07)
-* add postgres data holder
+* Add postgres data holder
 
 ### v0.1.2 (2024/02/27)
-* remove unwrap in ctrl_c
-* add tokio rt-multi-thread
-* fix: some features
+* Remove unwrap in ctrl_c
+* Add tokio rt-multi-thread
+* Fix: some features
 
 ### v0.1.1 (2024/02/27)
-* remove unnecessary features
-* remove unnecessary unwrap
-* cron crate reexport
-* fix: don't call stop_fuction in terminate state
+* Remove unnecessary features
+* Remove unnecessary unwrap
+* Cron crate reexport
+* Fix: don't call stop_fuction in terminate state
 
 ### v0.1.0 (2024/02/22)
-* first release
+* First release

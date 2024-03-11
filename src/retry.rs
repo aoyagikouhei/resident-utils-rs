@@ -16,6 +16,19 @@ pub async fn execute_retry<T, E, Fut>(
 where
     Fut: std::future::Future<Output = Result<T, E>>,
 {
+    execute_retry_with_exponential_backoff(max_try_count, retry_duration, timeout_duration, inner, false).await
+}
+
+pub async fn execute_retry_with_exponential_backoff<T, E, Fut>(
+    max_try_count: u64,
+    retry_duration: Duration,
+    timeout_duration: Duration,
+    inner: impl Fn(u64) -> Fut,
+    exponential_backoff: bool,
+) -> RetryResult<T, E>
+where
+    Fut: std::future::Future<Output = Result<T, E>>,
+{
     let mut try_count = 0;
     let mut timeout_count = 0;
     let mut errors = vec![];
@@ -62,7 +75,12 @@ where
             };
         }
         if !retry_duration.is_zero() {
-            tokio::time::sleep(retry_duration).await;
+            let duration = if exponential_backoff {
+                retry_duration.mul_f64(2_i32.pow(try_count as u32) as f64)
+            } else {
+                retry_duration
+            };
+            tokio::time::sleep(duration).await;
         }
     }
 }
@@ -74,13 +92,14 @@ mod tests {
     use tokio::time::sleep;
 
     use super::*;
-    // REALM_CODE=test cargo test -p api test_api_delete_reports_inner -- --nocapture --test-threads=1
+    // REALM_CODE=test cargo test test_retry -- --nocapture --test-threads=1
 
     async fn inner_success() -> Result<usize, String> {
         Ok(1)
     }
 
-    async fn inner_fail() -> Result<usize, String> {
+    async fn inner_fail(n: u64) -> Result<usize, String> {
+        println!("inner_fail {}", n);
         Err("error".to_string())
     }
 
@@ -112,11 +131,12 @@ mod tests {
         assert_eq!(res.timeout_count, 0);
 
         // Failure
-        let res = execute_retry(
+        let res = execute_retry_with_exponential_backoff(
             3,
+            Duration::from_secs(1),
             Duration::from_secs(0),
-            Duration::from_secs(0),
-            |_n| async { inner_fail().await },
+            |n| async move { inner_fail(n).await },
+            true,
         )
         .await;
         assert_eq!(res.success, None);
