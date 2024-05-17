@@ -2,7 +2,7 @@ workspace = { members = [ "examples/bot", "examples/example", "examples/holder_p
 
 [package]
 name = "resident-utils"
-version = "0.3.1"
+version = "0.4.0"
 edition = "2021"
 authors = ["aoyagikouhei <aoyagi.kouhei@gmail.com>"]
 license = "MIT"
@@ -16,8 +16,8 @@ documentation = "https://docs.rs/resident-utils"
 [dependencies]
 chrono = "0.4"
 cron = "0.12"
-deadpool-postgres = { version = "0.12", features = ["serde"], optional = true }
-deadpool-redis = { version = "0.14", features = ["serde"], optional = true }
+deadpool-postgres = { version = "0.13", features = ["serde"], optional = true }
+deadpool-redis = { version = "0.15", features = ["serde"], optional = true }
 thiserror = "1"
 tokio = { version = "1", features = ["rt-multi-thread", "time", "signal"] }
 tokio-util = "0.7"

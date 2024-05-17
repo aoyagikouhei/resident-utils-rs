@@ -1,5 +1,8 @@
 ## Changes
 
+### v0.4.0 (2024/05/17)
+* Update libraries.
+
 ### v0.3.1 (2024/03/12)
 * Support exponential backoff for retry
 
