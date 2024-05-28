@@ -1,6 +1,5 @@
 use chrono::prelude::*;
-use resident_utils::cron::Schedule;
-use resident_utils::{ctrl_c_handler, make_looper, LoopState};
+use resident_utils::{ctrl_c_handler, make_looper, LoopState, Schedule};
 use std::str::FromStr;
 use std::time::Duration;
 use tracing::{info, warn, Level};

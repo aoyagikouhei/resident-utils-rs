@@ -1,5 +1,9 @@
 ## Changes
 
+### v0.5.0 (2024/05/29)
+* Breaking changed remove reexport cron
+* add reexport cron::Schedule, tokio_util::sync::CancellationToken
+
 ### v0.4.0 (2024/05/17)
 * Update libraries.
 

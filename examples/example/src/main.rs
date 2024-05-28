@@ -1,8 +1,7 @@
 use resident_utils::{
-    cron::Schedule,
     ctrl_c_handler,
     postgres::{deadpool_postgres, make_looper, make_worker},
-    LoopState,
+    LoopState, Schedule,
 };
 use std::{str::FromStr, time::Duration};
 use tracing::{info, warn, Level};
