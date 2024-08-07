@@ -6,6 +6,9 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error("Invalid {0}")]
+    Invalid(String),
+
     #[error("PostgresPool {0}")]
     PostgresPool(#[from] deadpool_postgres::PoolError),
 

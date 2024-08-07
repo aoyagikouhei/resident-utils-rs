@@ -2,7 +2,7 @@ workspace = { members = [ "examples/bot", "examples/example", "examples/holder_p
 
 [package]
 name = "resident-utils"
-version = "0.5.0"
+version = "0.5.1"
 edition = "2021"
 authors = ["aoyagikouhei <aoyagi.kouhei@gmail.com>"]
 license = "MIT"

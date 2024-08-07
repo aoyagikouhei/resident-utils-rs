@@ -1,5 +1,8 @@
 ## Changes
 
+### v0.5.1 (2024/08/07)
+* add invalid error in holder
+
 ### v0.5.0 (2024/05/29)
 * Breaking changed remove reexport cron
 * add reexport cron::Schedule, tokio_util::sync::CancellationToken
