@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "examples/example"
+		}},
+		{
+			"path": "examples/example_sqlx"
 		},
 		{
 			"path": "examples/bot"
@@ -14,6 +17,7 @@
 		"rust-analyzer.cargo.features": [
 			"postgres",
 			"redis",
+			"sqlx",
 		],
 		"rust-analyzer.linkedProjects": [
 			"./Cargo.toml",

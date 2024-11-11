@@ -28,3 +28,4 @@ uuid = { version = "1.7.0", features = ["v4", "serde"] }
 [features]
 postgres = []
 redis = []
+sqlx = []

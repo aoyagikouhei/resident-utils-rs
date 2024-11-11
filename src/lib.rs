@@ -4,8 +4,14 @@ pub mod postgres;
 #[cfg(feature = "redis")]
 pub mod redis;
 
+#[cfg(feature = "sqlx")]
+pub mod sqlx;
+
 #[cfg(all(feature = "postgres", feature = "redis"))]
 pub mod postgres_redis;
+
+#[cfg(all(feature = "sqlx", feature = "redis"))]
+pub mod sqlx_redis;
 
 pub mod retry;
 
