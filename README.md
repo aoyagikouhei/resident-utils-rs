@@ -17,6 +17,9 @@ Resident program library.
 ### redis
 - deadpool_redis
 
+### sqlx
+- sqlx
+
 ## Changes
 [CHANGELOG.md](https://github.com/aoyagikouhei/resident-utils-rs/blob/main/CHANGELOG.md)
 
@@ -24,6 +27,10 @@ Resident program library.
 ### example
 PostgreSQL sample
 [source](https://github.com/aoyagikouhei/resident-utils-rs/tree/main/examples/example)
+
+### example_sqlx
+Sqlx sample
+[source](https://github.com/aoyagikouhei/resident-utils-rs/tree/main/examples/example_sqlx)
 
 ### bot
 𝕏 bot
