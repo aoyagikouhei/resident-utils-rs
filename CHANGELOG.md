@@ -1,5 +1,8 @@
 ## Changes
 
+### v0.6.0 (2024/11/11)
+* add sqlx
+
 ### v0.5.1 (2024/08/07)
 * add invalid error in holder
 

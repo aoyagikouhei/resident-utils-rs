@@ -19,3 +19,4 @@ twapi-v2 = { version = "0.10.1", default-features = false, features = ["rustls-t
 [features]
 postgres = []
 redis = []
+sqlx = []
