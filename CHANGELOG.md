@@ -1,5 +1,9 @@
 ## Changes
 
+### v0.7.0 (2024/11/13)
+* add cancel token in task
+
+
 ### v0.6.0 (2024/11/11)
 * add sqlx
 

@@ -17,6 +17,7 @@ pub fn make_looper<Fut1, Fut2>(
             DateTime<Utc>,
             SqlxPool,
             Result<deadpool_redis::Connection, deadpool_redis::PoolError>,
+            CancellationToken,
         ) -> Fut1
         + Send
         + Sync
@@ -48,9 +49,10 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = task_function(now, pg_pool.clone(), redis_pool.get().await)
-                    .await
-                    .looper(&token, &now, &schedule)
+                if let Some(res) =
+                    task_function(now, pg_pool.clone(), redis_pool.get().await, token.clone())
+                        .await
+                        .looper(&token, &now, &schedule)
                 {
                     next_tick = res;
                 } else {
@@ -73,6 +75,7 @@ pub fn make_worker<Fut1, Fut2>(
             DateTime<Utc>,
             SqlxPool,
             Result<deadpool_redis::Connection, deadpool_redis::PoolError>,
+            CancellationToken,
         ) -> Fut1
         + Send
         + Sync
@@ -100,9 +103,10 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = task_function(now, pg_pool.clone(), redis_pool.get().await)
-                    .await
-                    .worker(&token, &now)
+                if let Some(res) =
+                    task_function(now, pg_pool.clone(), redis_pool.get().await, token.clone())
+                        .await
+                        .worker(&token, &now)
                 {
                     next_tick = res;
                 } else {

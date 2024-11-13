@@ -16,7 +16,7 @@ pub fn make_looper<Fut1, Fut2>(
     token: CancellationToken,
     schedule: Schedule,
     stop_check_duration: Duration,
-    task_function: impl Fn(DateTime<Utc>, SqlxPool) -> Fut1 + Send + Sync + 'static,
+    task_function: impl Fn(DateTime<Utc>, SqlxPool, CancellationToken) -> Fut1 + Send + Sync + 'static,
     stop_function: impl Fn(SqlxPool) -> Fut2 + Send + Sync + 'static,
 ) -> JoinHandle<()>
 where
@@ -41,7 +41,7 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = task_function(now, pg_pool.clone())
+                if let Some(res) = task_function(now, pg_pool.clone(), token.clone())
                     .await
                     .looper(&token, &now, &schedule)
                 {
@@ -61,7 +61,7 @@ pub fn make_worker<Fut1, Fut2>(
     pg_pool: SqlxPool,
     token: CancellationToken,
     stop_check_duration: Duration,
-    task_function: impl Fn(DateTime<Utc>, SqlxPool) -> Fut1 + Send + Sync + 'static,
+    task_function: impl Fn(DateTime<Utc>, SqlxPool, CancellationToken) -> Fut1 + Send + Sync + 'static,
     stop_function: impl Fn(SqlxPool) -> Fut2 + Send + Sync + 'static,
 ) -> JoinHandle<()>
 where
@@ -82,7 +82,7 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = task_function(now, pg_pool.clone())
+                if let Some(res) = task_function(now, pg_pool.clone(), token.clone())
                     .await
                     .worker(&token, &now)
                 {

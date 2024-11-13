@@ -75,7 +75,7 @@ async fn main() -> anyhow::Result<()> {
             token.clone(),
             Schedule::from_str("*/10 * * * * *").unwrap(),
             Duration::from_secs(10),
-            |now, pg_pool| async move {
+            |now, pg_pool, _| async move {
                 info!("定期的に処理する何か1 {}", now);
                 match is_batch("minutely_batch", &pg_pool).await {
                     Ok(res) => {
@@ -102,7 +102,7 @@ async fn main() -> anyhow::Result<()> {
             pg_pool.clone(),
             token.clone(),
             Duration::from_secs(10),
-            |now, pg_pool| async move {
+            |now, pg_pool, _| async move {
                 info!("データがあれば処理する何か1 {}", now);
                 match get_task(&pg_pool).await {
                     Ok(Some(data_json)) => {

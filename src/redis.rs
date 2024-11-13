@@ -14,7 +14,11 @@ pub fn make_looper<Fut1, Fut2>(
     token: CancellationToken,
     schedule: Schedule,
     stop_check_duration: Duration,
-    task_function: impl Fn(DateTime<Utc>, Result<deadpool_redis::Connection, deadpool_redis::PoolError>) -> Fut1
+    task_function: impl Fn(
+            DateTime<Utc>,
+            Result<deadpool_redis::Connection, deadpool_redis::PoolError>,
+            CancellationToken,
+        ) -> Fut1
         + Send
         + Sync
         + 'static,
@@ -45,7 +49,7 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = task_function(now, redis_pool.get().await)
+                if let Some(res) = task_function(now, redis_pool.get().await, token.clone())
                     .await
                     .looper(&token, &now, &schedule)
                 {
@@ -65,7 +69,11 @@ pub fn make_worker<Fut1, Fut2>(
     redis_pool: deadpool_redis::Pool,
     token: CancellationToken,
     stop_check_duration: Duration,
-    task_function: impl Fn(DateTime<Utc>, Result<deadpool_redis::Connection, deadpool_redis::PoolError>) -> Fut1
+    task_function: impl Fn(
+            DateTime<Utc>,
+            Result<deadpool_redis::Connection, deadpool_redis::PoolError>,
+            CancellationToken,
+        ) -> Fut1
         + Send
         + Sync
         + 'static,
@@ -92,7 +100,7 @@ where
             let now = Utc::now();
             if now >= next_tick {
                 // 定期的に行う処理実行
-                if let Some(res) = task_function(now, redis_pool.get().await)
+                if let Some(res) = task_function(now, redis_pool.get().await, token.clone())
                     .await
                     .worker(&token, &now)
                 {
